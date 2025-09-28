@@ -1,17 +1,15 @@
-# Welcome to MkDocs
+<!-- docs/index.md -->
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+# 欢迎来到黄晓宇的个人网站 👋
 
-## Commands
+这是我的个人主页，下面是我的实验报告链接：
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## 实验一
 
-## Project layout
+- [任务 A](ch01/ch01html/task_a.html)
+- [任务 B](ch01/ch01html/task_b.html)
+- [任务 C](ch01/ch01html/task_c.html)
+- [任务 D](ch01/ch01html/task_d.html)
+- [任务 E](ch01/ch01html/task_e.html)
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+点击上面的链接，即可跳转到对应的 HTML 页面。

@@ -1,1 +1,4 @@
-site_name: My Docs
+site_name: 黄晓宇的个人网站
+
+nav:
+  - 首页: index.md
