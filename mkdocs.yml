@@ -1,4 +1,49 @@
 site_name: 黄晓宇的个人网站
+site_url: https://doubleg258.github.io/mkdocs-site/
+site_author: huangxiaoyu
+theme:
+  name: material
+  features:
+    - navigation.tabs  # 必须加！启用顶部横向导航栏
+    - navigation.header: true  # 强制显示导航，避免折叠
+
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+      primary: white
+      accent: light blue
+
+     # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode 
+      primary: black
+      accent: light blue
+    
+    
 
 nav:
-  - 首页: index.md
+  - 我:  
+    - 个人介绍: ME/index.md
+  - 计算机图形学: 
+    - WEBGL/index.md
+    - 实验一:
+      - 任务 A: WEBGL/ch01/ch01html/task_a.html
+      - 任务 B: WEBGL/ch01/ch01html/task_b.html
+      - 任务 C: WEBGL/ch01/ch01html/task_c.html
+      - 任务 D: WEBGL/ch01/ch01html/task_d.html
+      - 任务 E: WEBGL/ch01/ch01html/task_e.html
+    - 实验二:
+      - 任务 A: WEBGL/ch02/ch02html/task_a.html
+      - 任务 B: WEBGL/ch02/ch02html/task_b.html
+      - 任务 C: WEBGL/ch02/ch02html/task_c.html
+      - 任务 D: WEBGL/ch02/ch02html/task_d.html
+      - 任务 E: WEBGL/ch02/ch02html/task_e.html
+  - 关于我: aboutme.md
+  - 联系我: contactme.md
