@@ -45,5 +45,7 @@ nav:
       - 任务 C: WEBGL/ch02/ch02html/task_c.html
       - 任务 D: WEBGL/ch02/ch02html/task_d.html
       - 任务 E: WEBGL/ch02/ch02html/task_e.html
+    - 实验三:
+      - 任务 A: WEBGL/ch03/ch03html/ch.html
   - 关于我: aboutme.md
   - 联系我: contactme.md
