@@ -13,27 +13,48 @@ var numTimesToSubdivide = 3;
 
 window.onload = function init() {
     canvas = document.getElementById("gl-canvas");
+    
+    if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+    }
 
+    // 尝试获取WebGL2上下文，如果失败则尝试WebGL1
     gl = canvas.getContext("webgl2");
     if (!gl) {
-        alert("WebGL isn't available");
+        console.warn("WebGL 2.0 not available, trying WebGL 1.0...");
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     }
+    
+    if (!gl) {
+        alert("WebGL isn't available in your browser!");
+        return;
+    }
+
+    // 检查WebGL支持的功能
+    console.log("WebGL version:", gl.getParameter(gl.VERSION));
+    console.log("GLSL version:", gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
 
     // 初始化数据
     renderGasket();
 
     // 添加事件监听器
-    document.getElementById("update-button").addEventListener("click", function () {
-        var level = parseInt(document.getElementById("subdivision-level").value);
-        if (level >= 0 && level <= 7) {
-            numTimesToSubdivide = level; // 更新分割层次
-            points = []; // 清空点数据
-            colors = []; // 清空颜色数据
-            renderGasket(); // 重新初始化并绘制
-        } else {
-            alert("请输入有效的分割层次 (0-7)");
-        }
-    });
+    var updateButton = document.getElementById("update-button");
+    var levelInput = document.getElementById("subdivision-level");
+    
+    if (updateButton && levelInput) {
+        updateButton.addEventListener("click", function () {
+            var level = parseInt(levelInput.value);
+            if (level >= 0 && level <= 7) {
+                numTimesToSubdivide = level;
+                points = [];
+                colors = [];
+                renderGasket();
+            } else {
+                alert("请输入有效的分割层次 (0-7)");
+            }
+        });
+    }
 };
 
 function renderGasket() {
