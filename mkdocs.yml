@@ -25,8 +25,8 @@ theme:
         name: Switch to light mode 
       primary: black
       accent: light blue
-    
-    
+
+
 
 nav:
   - 我:  
@@ -47,5 +47,44 @@ nav:
       - 任务 E: WEBGL/ch02/ch02html/task_e.html
     - 实验三:
       - 任务 A: WEBGL/ch03/ch03html/ch.html
+    - 网课笔记:
+      - Lecture 2: WEBGL/NOTE/Lecture02.md
   - 关于我: aboutme.md
   - 联系我: contactme.md
+
+markdown_extensions:
+#添加图像配置
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+#-----------------------------
+# 添加数学公式支持
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - mkdocs/javascripts/mathjax.js
+#-----------------------------
+# 添加灯箱插件
+plugins:
+   - glightbox:
+       touchNavigation: true
+       loop: false
+       effect: zoom
+       slide_effect: slide
+       width: 100%
+       height: auto
+       zoomable: true
+       draggable: true
+       skip_classes:
+         - custom-skip-class-name
+       auto_themed: false
+       auto_caption: false
+       caption_position: bottom
+       background: white
+       shadow: true
+       manual: false
+
+# 启用搜索功能
+   - search
