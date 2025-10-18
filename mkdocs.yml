@@ -47,6 +47,9 @@ nav:
       - 任务 E: WEBGL/ch02/ch02html/task_e.html
     - 实验三:
       - 任务 A: WEBGL/ch03/ch03html/ch.html
+    - 实验四:
+      - 任务 A,B,C: WEBGL/ch04/ch04html/ch04_1.html
+      - 任务 E: WEBGL/ch04/ch04html/ch04_2.html
     - 网课笔记:
       - Lecture 2: WEBGL/NOTE/Lecture02.md
   - 关于我: aboutme.md
