@@ -50,8 +50,12 @@ nav:
     - 实验四:
       - 任务 A,B,C: WEBGL/ch04/ch04html/ch04_1.html
       - 任务 E: WEBGL/ch04/ch04html/ch04_2.html
+    - 实验五:
+      - 任务 A: WEBGL/ch05/ch05html/Task_A.html
+      - 任务 B: WEBGL/ch05/ch05html/Task_B.html
     - 网课笔记:
       - Lecture 2: WEBGL/NOTE/Lecture02.md
+      - Lecture 3and4: WEBGL/NOTE/Lecture03and04.md
   - 关于我: aboutme.md
   - 联系我: contactme.md
 

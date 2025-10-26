@@ -22,4 +22,8 @@
 - [任务 A,B,C](ch04/ch04html/ch04_1.html)
 - [任务 E](ch04/ch04html/ch04_2.html)
 
+## 实验五
+- [任务 A](ch05/ch05html/Task_A.html)
+- [任务 B](ch05/ch05html/Task_B.html)
+
 点击上面的链接，即可跳转到对应的 HTML 页面。
