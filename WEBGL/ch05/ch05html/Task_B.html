@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>立方体透视投影视图--按键与界面控制</title>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+	#version 300 es
+	in vec4 vPosition;
+	in vec4 vColor;
+	out vec4 aColor;
+
+	uniform mat4 modelViewMatrix;
+	uniform mat4 projectionMatrix;
+
+	void main()
+	{
+		gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+		aColor = vColor;	
+	}
+	</script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+	#version 300 es
+	precision mediump float;
+
+	in vec4 aColor;
+	out vec4 fColor;
+
+	void main()
+	{
+		fColor = aColor;
+	}
+	</script>
+
+    <script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../js/common/initShaders.js"></script>
+    <script type="text/javascript" src="../js/common/gl-matrix-min.js"></script>
+
+    
+    <script type="text/javascript" src="../js/chap05/persproj.js"></script>
+
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; }
+        canvas { border: 1px solid #ccc; }
+        .panel { margin-top: 10px; }
+        button { margin-right: 6px; margin-top: 6px; }
+        .range-row { margin: 6px 0; }
+        .range-row label { display: inline-block; width: 16px; }
+    </style>
+</head>
+
+<body onload="initCube()">
+    <h1>立方体透视投影视图--按键与界面控制</h1>
+
+    <canvas id="gl-canvas" width="512" height="512">
+        你的浏览器不支持HTML5 canvas元素
+    </canvas>
+
+    <div class="panel">
+        <button id="btn_nf_inc">Increase Near/Far</button>
+        <button id="btn_nf_dec">Decrease Near/Far</button>
+        <button id="btn_radius_inc">Increase Radius</button>
+        <button id="btn_radius_dec">Decrease Radius</button>
+    </div>
+
+    <div class="panel">
+        <button id="btn_theta_inc">Increase Theta</button>
+        <button id="btn_theta_dec">Decrease Theta</button>
+        <button id="btn_phi_inc">Increase Phi</button>
+        <button id="btn_phi_dec">Decrease Phi</button>
+    </div>
+
+    <div class="panel">
+        <button id="btn_fov_inc">FOV +</button>
+        <button id="btn_fov_dec">FOV -</button>
+        <button id="btn_reset">Reset</button>
+    </div>
+
+    <div class="panel">
+        <div class="range-row">
+            <label for="tx">X</label>
+            <input id="tx" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="range-row">
+            <label for="ty">Y</label>
+            <input id="ty" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="range-row">
+            <label for="tz">Z</label>
+            <input id="tz" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+    </div>
+
+    <div class="panel">
+        也可使用键盘：方向键旋转视点，W/S 调整半径，A/D 调整裁剪面。
+    </div>
+</body>
+
+</html>
