@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>交互式模型展示</title>
+
+    <!-- 着色器 -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+        layout(location=0) in vec3 vPosition;
+        layout(location=1) in vec3 vNormal;
+
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+
+        out vec3 fNormal;
+        out vec3 fPosEye;
+        void main(){
+            vec4 posEye = modelViewMatrix * vec4(vPosition, 1.0);
+            gl_Position = projectionMatrix * posEye;
+            fPosEye = posEye.xyz;
+            fNormal = normalize(normalMatrix * vNormal);
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+
+        in vec3 fNormal;
+        in vec3 fPosEye;
+        out vec4 fColor;
+
+        uniform vec3 uColor;
+        uniform float uAlpha;
+        uniform vec3 uLightDir; // 眼空间方向光
+
+        void main(){
+            vec3 N = normalize(fNormal);
+            vec3 L = normalize(uLightDir);
+            float diff = max(dot(N, L), 0.0);
+            vec3 rgb = uColor * (0.2 + 0.8 * diff);
+            fColor = vec4(rgb, uAlpha);
+        }
+    </script>
+
+    <!-- WebGL common libs -->
+    <script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../js/common/initShaders.js"></script>
+    <script type="text/javascript" src="../js/common/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="../js/common/objloader.js"></script>
+
+    <!-- Demo logic -->
+    <script type="text/javascript" src="../js/ch06js/interactive_obj.js"></script>
+
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; padding-right: 320px; }
+        canvas { border: 1px solid #ccc; }
+        #sidebar { position: fixed; top: 0; right: 0; width: 320px; height: 100vh; overflow-y: auto; background: rgba(255,255,255,0.95); box-shadow: -2px 0 8px rgba(0,0,0,0.1); padding: 12px 14px; }
+        .panel { margin-top: 10px; }
+        .range-row { margin: 6px 0; }
+        .range-row label { display: inline-block; width: 48px; }
+        .inline { display: inline-block; margin-right: 12px; }
+        button { margin-right: 6px; margin-top: 6px; }
+    </style>
+</head>
+<body onload="initApp()">
+    <h1>交互式模型展示</h1>
+
+    <canvas id="gl-canvas" width="720" height="540">你的浏览器不支持HTML5 canvas元素</canvas>
+
+    <div id="sidebar">
+        <div class="panel">
+            <label class="inline">选择模型（OBJ）：<input type="file" id="fileInput" accept=".obj"></label>
+            <span class="inline">渲染模式：
+                <label><input type="radio" name="renderMode" value="solid" checked> 面片</label>
+                <label><input type="radio" name="renderMode" value="wire"> 线框</label>
+            </span>
+            <span class="inline">
+                <label><input type="radio" id="useDiffuse" name="shaderMode" value="diffuse" checked> 漫反射(Diffuse)</label>
+                <label><input type="radio" id="usePhong" name="shaderMode" value="phong"> 高光(Phong)</label>
+            </span>
+            <span class="inline">
+                <label><input type="checkbox" id="chkBlend" checked> 启用透明混合</label>
+            </span>
+            <button id="btnReset">视图适配（居中显示）</button>
+        </div>
+
+        <div class="panel">
+            <div class="range-row"><label>平移X</label><input id="tx" type="range" min="-2" max="2" step="0.01" value="0"></div>
+            <div class="range-row"><label>平移Y</label><input id="ty" type="range" min="-2" max="2" step="0.01" value="0"></div>
+            <div class="range-row"><label>平移Z</label><input id="tz" type="range" min="-2" max="2" step="0.01" value="0"></div>
+            <div class="range-row"><label>旋转X(度)</label><input id="rx" type="range" min="-180" max="180" step="0.5" value="0"></div>
+            <div class="range-row"><label>旋转Y(度)</label><input id="ry" type="range" min="-180" max="180" step="0.5" value="0"></div>
+            <div class="range-row"><label>旋转Z(度)</label><input id="rz" type="range" min="-180" max="180" step="0.5" value="0"></div>
+            <div class="range-row"><label>缩放</label><input id="scale" type="range" min="0.1" max="3" step="0.01" value="1"></div>
+            <div class="range-row"><label>透明度</label><input id="alpha" type="range" min="0" max="1" step="0.01" value="0.9"></div>
+            <div class="range-row"><label>颜色</label><input id="color" type="color" value="#3f8cff"></div>
+        </div>
+
+        <!-- 摄像机控制 -->
+        <div class="panel">
+            <h3>相机（右手系）</h3>
+            <div class="range-row"><label>半径(缩放)</label><input id="camRadius" type="range" min="0.5" max="30" step="0.05" value="5"></div>
+            <div class="range-row"><label>绕Y旋转(Yaw)</label><input id="camPhi" type="range" min="-180" max="180" step="0.5" value="30"></div>
+            <div class="range-row"><label>绕X旋转(Pitch)</label><input id="camTheta" type="range" min="-180" max="180" step="0.5" value="15"></div>
+            <div class="range-row"><label>绕Z旋转(Roll)</label><input id="camRoll" type="range" min="-180" max="180" step="0.5" value="0"></div>
+            <div class="range-row"><label>相机平移X</label><input id="camTx" type="range" min="-50" max="50" step="0.01" value="0"></div>
+            <div class="range-row"><label>相机平移Y</label><input id="camTy" type="range" min="-50" max="50" step="0.01" value="0"></div>
+            <div class="range-row"><label>相机平移Z</label><input id="camTz" type="range" min="-50" max="50" step="0.01" value="0"></div>
+            <div>提示：右手系约定：+X右、+Y上、+Z朝屏幕外；拖拽旋转，滚轮缩放；（可选）按住Shift并拖拽进行平移。</div>
+        </div>
+
+        <!-- 投影方式选择 -->
+        <div class="panel">
+            <h3>投影</h3>
+            <span class="inline">
+                <label><input type="radio" id="projPersp" name="projMode" value="persp" checked> 透视</label>
+                <label><input type="radio" id="projOrtho" name="projMode" value="ortho"> 正交</label>
+            </span>
+            <div class="range-row"><label>视野(FOV)</label><input id="fovy" type="range" min="30" max="120" step="0.5" value="60"></div>
+         <div class="range-row"><label>近裁剪面</label><input id="near" type="range" min="0.01" max="10" step="0.01" value="0.1"></div>
+         <div class="range-row"><label>远裁剪面</label><input id="far" type="range" min="10" max="200" step="0.5" value="100"></div>
+         <div class="range-row"><label>左(Left)</label><input id="orthoLeft" type="range" min="-10" max="10" step="0.01" value="-1"></div>
+         <div class="range-row"><label>右(Right)</label><input id="orthoRight" type="range" min="-10" max="10" step="0.01" value="1"></div>
+         <div class="range-row"><label>下(Bottom)</label><input id="orthoBottom" type="range" min="-10" max="10" step="0.01" value="-1"></div>
+         <div class="range-row"><label>上(Top)</label><input id="orthoTop" type="range" min="-10" max="10" step="0.01" value="1"></div>
+             <div>提示：正交模式使用六个裁剪面参数（左/右/下/上/近/远）；透视模式使用FOV与近远裁剪面。</div>
+        </div>
+
+        <div class="panel">提示：模型与相机的平移/旋转/缩放控制已分组；右手系约定：+X向右、+Y向上、+Z朝屏幕外。透视模式使用 FOV 与近/远裁剪；正交模式使用 左/右/下/上/近/远 六个参数。</div>
+    </div>
+</body>
+</html>

@@ -255,6 +255,8 @@ $$
 /// caption
 ///
 
-$$M_{\text{persp}} = M_{\text{ortho}} \, M_{\text{persp}\to\text{ortho}}$$
+$$
+M_{\text{persp}} = M_{\text{ortho}} \, M_{\text{persp}\to\text{ortho}}
+$$
 
 

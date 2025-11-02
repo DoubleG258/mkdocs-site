@@ -26,4 +26,7 @@
 - [任务 A](ch05/ch05html/Task_A.html)
 - [任务 B](ch05/ch05html/Task_B.html)
 
+## 实验六
+ - [任务 A](ch06/ch06html/ch06.html)
+
 点击上面的链接，即可跳转到对应的 HTML 页面。
