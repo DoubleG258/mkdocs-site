@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>立方体正交投影视图--按钮控制</title>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+
+        in vec4 vPosition;
+        in vec4 vColor;
+        out vec4 aColor;
+
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+
+        void main(){
+            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+            aColor = vColor;
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+
+        in vec4 aColor;
+        out vec4 fColor;
+
+        void main(){
+            fColor = aColor;
+        }
+    </script>
+
+    <!-- WebGL helper libs -->
+    <script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../js/common/initShaders.js"></script>
+    <script type="text/javascript" src="../js/common/gl-matrix-min.js"></script>
+
+    <!-- Demo logic -->
+    <script type="text/javascript" src="../js/chap05/orthoproj.js"></script>
+
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; }
+        .panel { margin-top: 8px; }
+        .range-row { margin: 6px 0; }
+        .range-row label { display: inline-block; width: 16px; }
+        canvas { border: 1px solid #ccc; }
+        button { margin-right: 6px; margin-top: 6px; }
+    </style>
+</head>
+<body onload="initCube()">
+    <h1>立方体正交投影视图--按钮控制</h1>
+
+    <canvas id="proj-canvas" width="512" height="512">
+        您的浏览器不支持HTML5 Canvas元素
+    </canvas>
+
+    <div class="panel">
+        <button id="btn1">Increase ZDist</button>
+        <button id="btn2">Decrease ZDist</button>
+        <button id="btn3">Increase Radius</button>
+        <button id="btn4">Decrease Radius</button>
+    </div>
+
+    <div class="panel">
+        <button id="btn5">Increase Theta</button>
+        <button id="btn6">Decrease Theta</button>
+        <button id="btn7">Increase Phi</button>
+        <button id="btn8">Decrease Phi</button>
+    </div>
+
+    <div class="panel">
+        <div class="range-row">
+            <label for="tx">X</label>
+            <input id="tx" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="range-row">
+            <label for="ty">Y</label>
+            <input id="ty" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <div class="range-row">
+            <label for="tz">Z</label>
+            <input id="tz" type="range" min="-1" max="1" step="0.01" value="0">
+        </div>
+        <button id="btn9">Ortho Zoom In</button>
+        <button id="btn10">Ortho Zoom Out</button>
+        <!-- 键盘提示 -->
+        <p>键盘：方向键移动物体，W/S 极角，A/D 方位角，-/+ 半径，[ ] 正交缩放，R 复位。</p>
+    </div>
+</body>
+</html>

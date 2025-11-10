@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>二维图形变换应用</title>
+    <script id="v-shader" type="x-shader/x-vertex">
+    attribute vec4 vPosition;
+    uniform mat4 transformMatrix;
+    
+    void main()
+    {
+        gl_Position = transformMatrix * vPosition;
+    }
+    </script>
+
+    <script id="f-shader" type="x-shader/x-fragment">
+    precision mediump float;
+    uniform vec4 color;
+    
+    void main()
+    {
+        gl_FragColor = color;
+    }
+    </script>
+
+    <script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../js/common/initShaders.js"></script>
+    <script type="text/javascript" src="../js/common/gl-matrix-min.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .controls { margin-bottom: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 5px; }
+        .control-group { margin-bottom: 10px; }
+        label { display: inline-block; width: 120px; }
+        input, select { margin-right: 10px; }
+        canvas { border: 1px solid #ccc; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>二维图形变换应用</h2>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="transform-type">变换类型:</label>
+                <select id="transform-type" onchange="updateTransformControls()">
+                    <option value="translate">平移</option>
+                    <option value="rotate">旋转</option>
+                    <option value="scale">缩放</option>
+                </select>
+            </div>
+            
+            <!-- 平移控件 -->
+            <div id="translate-controls" class="control-group">
+                <label for="translate-x">X轴平移:</label>
+                <input type="range" id="translate-x" min="-1" max="1" step="0.05" value="0" oninput="updateTransform()">
+                <span id="translate-x-value">0</span>
+                
+                <label for="translate-y">Y轴平移:</label>
+                <input type="range" id="translate-y" min="-1" max="1" step="0.05" value="0" oninput="updateTransform()">
+                <span id="translate-y-value">0</span>
+            </div>
+            
+            <!-- 旋转控件 -->
+            <div id="rotate-controls" class="control-group" style="display: none;">
+                <label for="rotate-angle">旋转角度:</label>
+                <input type="range" id="rotate-angle" min="0" max="360" step="1" value="0" oninput="updateTransform()">
+                <span id="rotate-angle-value">0°</span>
+            </div>
+            
+            <!-- 缩放控件 -->
+            <div id="scale-controls" class="control-group" style="display: none;">
+                <label for="scale-axis">缩放轴:</label>
+                <select id="scale-axis" onchange="updateTransform()">
+                    <option value="both">X和Y轴</option>
+                    <option value="x">仅X轴</option>
+                    <option value="y">仅Y轴</option>
+                </select>
+                
+                <label for="scale-factor">缩放因子:</label>
+                <input type="range" id="scale-factor" min="0.1" max="3" step="0.1" value="1" oninput="updateTransform()">
+                <span id="scale-factor-value">1.0</span>
+            </div>
+            
+            <button onclick="resetTransform()">重置变换</button>
+        </div>
+        
+        <canvas id="transform-canvas" width="600" height="600">你的浏览器不支持HTML5 canvas元素</canvas>
+    </div>
+    
+    <script type="text/javascript" src="../js/chap03/ch.js"></script>
+</body>
+
+</html>
