@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL实验6+7 - 三维模型交互式展示与Phong光照</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .content {
+            display: flex;
+            gap: 20px;
+        }
+        .canvas-container {
+            flex: 1;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .controls-container {
+            width: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 800px;
+        }
+        canvas {
+            display: block;
+            background: black;
+        }
+        .control-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .control-group h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .control-row label {
+            width: 120px;
+            font-size: 14px;
+        }
+        .control-row input[type="number"],
+        .control-row input[type="range"] {
+            flex: 1;
+            margin: 0 5px;
+        }
+        .control-row span {
+            width: 40px;
+            text-align: right;
+            font-size: 12px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 2px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-button.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .key-controls {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WebGL实验6+7 - 三维模型交互式展示与Phong光照</h1>
+            <p>实现OBJ模型加载、模型变换、相机控制、成像控制、Phong光照模型等功能</p>
+        </div>
+        
+        <div class="content">
+            <div class="canvas-container">
+                <canvas id="gl-canvas" width="800" height="600">
+                    您的浏览器不支持HTML5 Canvas元素
+                </canvas>
+                
+                <div class="key-controls">
+                    <h4>键盘控制：</h4>
+                    <p><strong>模型旋转：</strong> W/S/A/D - 绕X/Y轴旋转 | Q/E - 绕Z轴旋转</p>
+                    <p><strong>模型平移：</strong> 方向键 - 在XY平面移动 | PageUp/PageDown - Z轴移动</p>
+                    <p><strong>模型缩放：</strong> +/- 键 - 缩放模型</p>
+                    <p><strong>相机控制：</strong> I/K/J/L - 相机旋转 | U/O - 相机远近</p>
+                </div>
+            </div>
+            
+            <div class="controls-container">
+                <div class="tab-buttons">
+                    <div class="tab-button active" onclick="showTab('model-tab')">模型控制</div>
+                    <div class="tab-button" onclick="showTab('camera-tab')">相机控制</div>
+                    <div class="tab-button" onclick="showTab('lighting-tab')">光照设置</div>
+                </div>
+                
+                <!-- 模型控制标签 -->
+                <div id="model-tab" class="tab-content active">
+                    <div class="control-group">
+                        <h3>模型加载</h3>
+                        <div class="control-row">
+                            <button onclick="loadDefaultModel()">加载默认模型</button>
+                        </div>
+                        <div class="control-row">
+                            <input type="file" id="objFileInput" accept=".obj" style="display: none;">
+                            <button onclick="document.getElementById('objFileInput').click()">选择OBJ文件</button>
+                            <span id="fileStatus" style="margin-left: 10px; color: #666; font-size: 12px;">未选择文件</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>绘制模式</h3>
+                        <div class="control-row">
+                            <button onclick="setRenderMode('solid')">面片模式</button>
+                            <button onclick="setRenderMode('wireframe')">线框模式</button>
+                        </div>
+                        <div class="control-row">
+                            <label>线框颜色：</label>
+                            <input type="color" id="wireframe-color" value="#ffffff" onchange="updateWireframeColor()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>模型变换</h3>
+                        <div class="control-row">
+                            <label>平移 X:</label>
+                            <input type="range" id="translate-x" min="-10" max="10" step="0.1" value="0" onchange="updateModelTransform()">
+                            <span id="translate-x-value">0.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>平移 Y:</label>
+                            <input type="range" id="translate-y" min="-10" max="10" step="0.1" value="0" onchange="updateModelTransform()">
+                            <span id="translate-y-value">0.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>平移 Z:</label>
+                            <input type="range" id="translate-z" min="-10" max="10" step="0.1" value="0" onchange="updateModelTransform()">
+                            <span id="translate-z-value">0.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>旋转 X:</label>
+                            <input type="range" id="rotate-x" min="-180" max="180" step="1" value="0" onchange="updateModelTransform()">
+                            <span id="rotate-x-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <label>旋转 Y:</label>
+                            <input type="range" id="rotate-y" min="-180" max="180" step="1" value="0" onchange="updateModelTransform()">
+                            <span id="rotate-y-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <label>旋转 Z:</label>
+                            <input type="range" id="rotate-z" min="-180" max="180" step="1" value="0" onchange="updateModelTransform()">
+                            <span id="rotate-z-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <label>缩放:</label>
+                            <input type="range" id="scale" min="0.1" max="5" step="0.1" value="1" onchange="updateModelTransform()">
+                            <span id="scale-value">1.0</span>
+                        </div>
+                        <div class="control-row">
+                            <button onclick="resetModelTransform()">重置模型变换</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 相机控制标签 -->
+                <div id="camera-tab" class="tab-content">
+                    <div class="control-group">
+                        <h3>投影模式</h3>
+                        <div class="control-row">
+                            <button onclick="setProjectionMode('perspective')">透视投影</button>
+                            <button onclick="setProjectionMode('orthographic')">正交投影</button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>相机变换</h3>
+                        <div class="control-row">
+                            <label>位置 X:</label>
+                            <input type="range" id="camera-x" min="-20" max="20" step="0.5" value="5" onchange="updateCameraTransform()">
+                            <span id="camera-x-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>位置 Y:</label>
+                            <input type="range" id="camera-y" min="-20" max="20" step="0.5" value="5" onchange="updateCameraTransform()">
+                            <span id="camera-y-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>位置 Z:</label>
+                            <input type="range" id="camera-z" min="-20" max="20" step="0.5" value="5" onchange="updateCameraTransform()">
+                            <span id="camera-z-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>旋转 X:</label>
+                            <input type="range" id="camera-rotate-x" min="-180" max="180" step="1" value="0" onchange="updateCameraTransform()">
+                            <span id="camera-rotate-x-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <label>旋转 Y:</label>
+                            <input type="range" id="camera-rotate-y" min="-180" max="180" step="1" value="0" onchange="updateCameraTransform()">
+                            <span id="camera-rotate-y-value">0°</span>
+                        </div>
+                        <div class="control-row">
+                            <button onclick="resetCameraTransform()">重置相机</button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>投影参数</h3>
+                        <div class="control-row">
+                            <label>视野角度:</label>
+                            <input type="range" id="fov" min="30" max="120" step="1" value="45" onchange="updateProjectionParams()">
+                            <span id="fov-value">45°</span>
+                        </div>
+                        <div class="control-row">
+                            <label>近平面:</label>
+                            <input type="range" id="near-plane" min="0.1" max="10" step="0.1" value="0.1" onchange="updateProjectionParams()">
+                            <span id="near-plane-value">0.1</span>
+                        </div>
+                        <div class="control-row">
+                            <label>远平面:</label>
+                            <input type="range" id="far-plane" min="10" max="100" step="1" value="100" onchange="updateProjectionParams()">
+                            <span id="far-plane-value">100</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 光照设置标签 -->
+                <div id="lighting-tab" class="tab-content">
+                    <div class="control-group">
+                        <h3>光源设置</h3>
+                        <div class="control-row">
+                            <label>位置 X:</label>
+                            <input type="range" id="light-x" min="-10" max="10" step="0.1" value="5" onchange="updateLighting()">
+                            <span id="light-x-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>位置 Y:</label>
+                            <input type="range" id="light-y" min="-10" max="10" step="0.1" value="5" onchange="updateLighting()">
+                            <span id="light-y-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>位置 Z:</label>
+                            <input type="range" id="light-z" min="-10" max="10" step="0.1" value="5" onchange="updateLighting()">
+                            <span id="light-z-value">5.0</span>
+                        </div>
+                        <div class="control-row">
+                            <label>光源颜色:</label>
+                            <input type="color" id="light-color" value="#ffffff" onchange="updateLighting()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>材质属性</h3>
+                        <div class="control-row">
+                            <label>环境光系数:</label>
+                            <input type="range" id="ambient-coef" min="0" max="1" step="0.01" value="0.2" onchange="updateMaterial()">
+                            <span id="ambient-coef-value">0.2</span>
+                        </div>
+                        <div class="control-row">
+                            <label>漫反射系数:</label>
+                            <input type="range" id="diffuse-coef" min="0" max="1" step="0.01" value="0.8" onchange="updateMaterial()">
+                            <span id="diffuse-coef-value">0.8</span>
+                        </div>
+                        <div class="control-row">
+                            <label>镜面反射系数:</label>
+                            <input type="range" id="specular-coef" min="0" max="1" step="0.01" value="0.5" onchange="updateMaterial()">
+                            <span id="specular-coef-value">0.5</span>
+                        </div>
+                        <div class="control-row">
+                            <label>光泽度:</label>
+                            <input type="range" id="shininess" min="1" max="100" step="1" value="32" onchange="updateMaterial()">
+                            <span id="shininess-value">32</span>
+                        </div>
+                        <div class="control-row">
+                            <label>材质颜色:</label>
+                            <input type="color" id="material-color" value="#ff6b6b" onchange="updateMaterial()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>着色模式</h3>
+                        <div class="control-row">
+                            <button onclick="setShadingMode('phong')">Phong着色</button>
+                            <button onclick="setShadingMode('gouraud')">Gouraud着色</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入WebGL库 -->
+    <script src="../js/common/webgl-utils.js"></script>
+    <script src="../js/common/initShaders.js"></script>
+    <script src="../js/common/gl-matrix.js"></script>
+    <script src="../js/common/objloader.js"></script>
+    
+    <!-- 引入模型加载器 -->
+    <script src="../js/ch07js/lab6-7-model-loader.js"></script>
+    
+    <!-- 主应用脚本 -->
+    <script src="../js/ch07js/lab6-7-renderer.js"></script>
+    
+    <script>
+        let renderer = null;
+        
+        function showTab(tabId) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 移除所有标签按钮的激活状态
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活对应的标签按钮
+            event.target.classList.add('active');
+        }
+        
+        function updateSliderValue(sliderId, valueId, suffix = '') {
+            const slider = document.getElementById(sliderId);
+            const valueSpan = document.getElementById(valueId);
+            valueSpan.textContent = slider.value + suffix;
+        }
+        
+        // 初始化所有滑块的值显示
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模型变换滑块
+            const modelSliders = ['translate-x', 'translate-y', 'translate-z', 
+                                 'rotate-x', 'rotate-y', 'rotate-z', 'scale'];
+            modelSliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const valueId = sliderId + '-value';
+                const suffix = sliderId.startsWith('rotate') ? '°' : '';
+                updateSliderValue(sliderId, valueId, suffix);
+                
+                slider.addEventListener('input', function() {
+                    updateSliderValue(sliderId, valueId, suffix);
+                });
+            });
+            
+            // 相机变换滑块
+            const cameraSliders = ['camera-x', 'camera-y', 'camera-z', 
+                                  'camera-rotate-x', 'camera-rotate-y'];
+            cameraSliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const valueId = sliderId + '-value';
+                const suffix = sliderId.includes('rotate') ? '°' : '';
+                updateSliderValue(sliderId, valueId, suffix);
+                
+                slider.addEventListener('input', function() {
+                    updateSliderValue(sliderId, valueId, suffix);
+                });
+            });
+            
+            // 投影参数滑块
+            const projectionSliders = ['fov', 'near-plane', 'far-plane'];
+            projectionSliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const valueId = sliderId + '-value';
+                const suffix = sliderId === 'fov' ? '°' : '';
+                updateSliderValue(sliderId, valueId, suffix);
+                
+                slider.addEventListener('input', function() {
+                    updateSliderValue(sliderId, valueId, suffix);
+                });
+            });
+            
+            // 光照滑块
+            const lightingSliders = ['light-x', 'light-y', 'light-z',
+                                    'ambient-coef', 'diffuse-coef', 'specular-coef', 'shininess'];
+            lightingSliders.forEach(sliderId => {
+                const slider = document.getElementById(sliderId);
+                const valueId = sliderId + '-value';
+                updateSliderValue(sliderId, valueId);
+                
+                slider.addEventListener('input', function() {
+                    updateSliderValue(sliderId, valueId);
+                });
+            });
+        });
+        
+        // 页面加载完成后初始化渲染器
+        window.onload = function() {
+            renderer = new Lab67Renderer("gl-canvas");
+            renderer.init();
+            
+            // 设置文件选择事件
+            const fileInput = document.getElementById('objFileInput');
+            const fileStatus = document.getElementById('fileStatus');
+            
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    fileStatus.textContent = '正在加载: ' + file.name;
+                    fileStatus.style.color = '#ffa500'; // 橙色表示加载中
+                    
+                    loadModelFromFile(file);
+                }
+            });
+            
+            // 从文件加载模型
+            function loadModelFromFile(file) {
+                if (!renderer.modelLoader) {
+                    alert('模型加载器未初始化');
+                    return;
+                }
+                
+                renderer.modelLoader.loadModelFromFile(file)
+                    .then(function(mesh) {
+                        // 清除默认模型状态
+                        renderer.vertices = [];
+                        renderer.normals = [];
+                        renderer.indices = [];
+                        renderer.vertexCount = 0;
+                        
+                        // 初始化WebGL缓冲区
+                        const modelName = file.name.replace('.obj', '');
+                        const success = renderer.modelLoader.initBuffers(renderer.gl, modelName);
+                        
+                        if (!success) {
+                            throw new Error('WebGL缓冲区初始化失败');
+                        }
+                        
+                        // 设置当前模型
+                        renderer.currentModel = modelName;
+                        
+                        // 自动调整模型大小和位置
+                        renderer.autoAdjustModel();
+                        
+                        // 更新文件状态
+                        fileStatus.textContent = '已加载: ' + file.name;
+                        fileStatus.style.color = '#4CAF50'; // 绿色表示成功
+                        
+                        // 更新模型状态
+                        if (typeof updateModelStatus === 'function') {
+                            updateModelStatus('自定义模型已加载: ' + file.name);
+                        }
+                        
+                        console.log('自定义模型加载成功:', file.name);
+                        // 触发一次渲染，确保模型显示到画布
+                        renderer.display();
+                    })
+                    .catch(function(error) {
+                        console.error('模型加载失败:', error);
+                        fileStatus.textContent = '加载失败: ' + error.message;
+                        fileStatus.style.color = '#f44336'; // 红色表示失败
+                        
+                        alert('模型加载失败: ' + error.message);
+                    });
+            }
+            
+            renderer.display();
+            
+            // 加载默认模型
+            loadDefaultModel();
+        };
+        
+        // 控制函数 - 这些函数将在renderer.js中实现
+        function loadCatModel() {
+            if (renderer) renderer.loadCatModel();
+        }
+        
+        function loadDefaultModel() {
+            if (renderer) renderer.loadDefaultModel();
+        }
+        
+        function setRenderMode(mode) {
+            if (renderer) renderer.setRenderMode(mode);
+        }
+        
+        function updateWireframeColor() {
+            const color = document.getElementById('wireframe-color').value;
+            if (renderer) renderer.setWireframeColor(color);
+        }
+        
+        function updateModelTransform() {
+            if (renderer) {
+                const tx = parseFloat(document.getElementById('translate-x').value);
+                const ty = parseFloat(document.getElementById('translate-y').value);
+                const tz = parseFloat(document.getElementById('translate-z').value);
+                const rx = parseFloat(document.getElementById('rotate-x').value);
+                const ry = parseFloat(document.getElementById('rotate-y').value);
+                const rz = parseFloat(document.getElementById('rotate-z').value);
+                const scale = parseFloat(document.getElementById('scale').value);
+                
+                renderer.setModelTransform(tx, ty, tz, rx, ry, rz, scale);
+            }
+        }
+        
+        function resetModelTransform() {
+            if (renderer) renderer.resetModelTransform();
+            // 重置滑块值
+            document.getElementById('translate-x').value = 0;
+            document.getElementById('translate-y').value = 0;
+            document.getElementById('translate-z').value = 0;
+            document.getElementById('rotate-x').value = 0;
+            document.getElementById('rotate-y').value = 0;
+            document.getElementById('rotate-z').value = 0;
+            document.getElementById('scale').value = 1;
+            
+            // 更新显示值
+            updateSliderValue('translate-x', 'translate-x-value');
+            updateSliderValue('translate-y', 'translate-y-value');
+            updateSliderValue('translate-z', 'translate-z-value');
+            updateSliderValue('rotate-x', 'rotate-x-value', '°');
+            updateSliderValue('rotate-y', 'rotate-y-value', '°');
+            updateSliderValue('rotate-z', 'rotate-z-value', '°');
+            updateSliderValue('scale', 'scale-value');
+        }
+        
+        function setProjectionMode(mode) {
+            if (renderer) renderer.setProjectionMode(mode);
+        }
+        
+        function updateCameraTransform() {
+            if (renderer) {
+                const x = parseFloat(document.getElementById('camera-x').value);
+                const y = parseFloat(document.getElementById('camera-y').value);
+                const z = parseFloat(document.getElementById('camera-z').value);
+                const rx = parseFloat(document.getElementById('camera-rotate-x').value);
+                const ry = parseFloat(document.getElementById('camera-rotate-y').value);
+                
+                renderer.setCameraTransform(x, y, z, rx, ry);
+            }
+        }
+        
+        function resetCameraTransform() {
+            if (renderer) renderer.resetCameraTransform();
+            // 重置滑块值
+            document.getElementById('camera-x').value = 5;
+            document.getElementById('camera-y').value = 5;
+            document.getElementById('camera-z').value = 5;
+            document.getElementById('camera-rotate-x').value = 0;
+            document.getElementById('camera-rotate-y').value = 0;
+            
+            // 更新显示值
+            updateSliderValue('camera-x', 'camera-x-value');
+            updateSliderValue('camera-y', 'camera-y-value');
+            updateSliderValue('camera-z', 'camera-z-value');
+            updateSliderValue('camera-rotate-x', 'camera-rotate-x-value', '°');
+            updateSliderValue('camera-rotate-y', 'camera-rotate-y-value', '°');
+        }
+        
+        function updateProjectionParams() {
+            if (renderer) {
+                const fov = parseFloat(document.getElementById('fov').value);
+                const near = parseFloat(document.getElementById('near-plane').value);
+                const far = parseFloat(document.getElementById('far-plane').value);
+                
+                renderer.setProjectionParams(fov, near, far);
+            }
+        }
+        
+        function updateLighting() {
+            if (renderer) {
+                const x = parseFloat(document.getElementById('light-x').value);
+                const y = parseFloat(document.getElementById('light-y').value);
+                const z = parseFloat(document.getElementById('light-z').value);
+                const color = document.getElementById('light-color').value;
+                
+                renderer.setLightPosition(x, y, z);
+                renderer.setLightColor(color);
+            }
+        }
+        
+        function updateMaterial() {
+            if (renderer) {
+                const ambient = parseFloat(document.getElementById('ambient-coef').value);
+                const diffuse = parseFloat(document.getElementById('diffuse-coef').value);
+                const specular = parseFloat(document.getElementById('specular-coef').value);
+                const shininess = parseFloat(document.getElementById('shininess').value);
+                const color = document.getElementById('material-color').value;
+                
+                renderer.setMaterialProperties(ambient, diffuse, specular, shininess, color);
+            }
+        }
+        
+        function setShadingMode(mode) {
+            if (renderer) renderer.setShadingMode(mode);
+        }
+    </script>
+</body>
+</html>

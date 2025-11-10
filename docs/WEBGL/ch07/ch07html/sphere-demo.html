@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>球体渲染 - Phong着色</title>
+<head>
+<script type="text/javascript" src="../js/common/webgl-utils.js"></script>
+<script type="text/javascript" src="../js/common/initShaders.js"></script>
+<script type="text/javascript" src="../js/common/gl-matrix.js"></script>
+
+<script type="text/javascript" src="../js/ch07js/renderSphere.js"></script>
+
+<script type="text/javascript">
+
+	var renderer = 0;
+
+	function run(){
+		renderer = new Renderer( "gl-canvas" );
+		renderer.init();
+		renderer.display();
+	}
+
+	var interval = setInterval( timerFunc, 30 );
+
+	function timerFunc(){
+		if( renderer ) renderer.display();
+	}
+
+	function updateSubdivisions(){
+		var subdivisions = parseInt( document.getElementById( "subdivisions" ).value );
+		if( renderer ) {
+			renderer.setSubdivisions( subdivisions );
+			renderer.display();
+		}
+	}
+
+	function updateLightPosition(){
+		if( renderer ) {
+			var x = parseFloat( document.getElementById( "lightX" ).value );
+			var y = parseFloat( document.getElementById( "lightY" ).value );
+			var z = parseFloat( document.getElementById( "lightZ" ).value );
+			var w = parseFloat( document.getElementById( "lightW" ).value );
+			renderer.setLightPosition( x, y, z, w );
+			renderer.display();
+		}
+	}
+
+	function updateMaterial(){
+		if( renderer ) {
+			// 环境光
+			var ar = parseFloat( document.getElementById( "ambientR" ).value );
+			var ag = parseFloat( document.getElementById( "ambientG" ).value );
+			var ab = parseFloat( document.getElementById( "ambientB" ).value );
+			
+			// 漫反射
+			var dr = parseFloat( document.getElementById( "diffuseR" ).value );
+			var dg = parseFloat( document.getElementById( "diffuseG" ).value );
+			var db = parseFloat( document.getElementById( "diffuseB" ).value );
+			
+			// 镜面反射
+			var sr = parseFloat( document.getElementById( "specularR" ).value );
+			var sg = parseFloat( document.getElementById( "specularG" ).value );
+			var sb = parseFloat( document.getElementById( "specularB" ).value );
+			
+			// 光泽度
+			var shininess = parseFloat( document.getElementById( "shininess" ).value );
+			
+			renderer.setMaterialProperties( ar, ag, ab, dr, dg, db, sr, sg, sb, shininess );
+			renderer.display();
+		}
+	}
+
+</script>
+</head>
+<body onload="run()">
+	<h1>球体渲染 - Phong着色模型</h1>
+	<p style="text-align:left">基于正四面体递归细分构建球体，实现Phong光照模型</p>
+
+	<table style="border:1px solid black">
+		<caption align="bottom">按键控制</caption>
+		<tr>
+			<td>a/d</td>
+			<td>w/s</td>
+			<td>z/x</td>
+			<td>v/b</td>
+		</tr>
+		<tr>
+			<td>增加/减少 theta</td>
+			<td>增加/减少 phi</td>
+			<td>增大/减小半径</td>
+			<td>增加/减少细分级别</td>
+		</tr>
+	</table>
+
+	<table>
+		<tr style="vertical-align:top;">
+		<td>
+			<canvas id="gl-canvas" width="640" height="480">您的浏览器不支持HTML5 Canvas元素</canvas><br>
+			
+			<div style="margin-top:10px;">
+				<label>细分级别: </label>
+				<input type="number" id="subdivisions" value="2" min="0" max="6" onchange="updateSubdivisions()">
+				<button onclick="updateSubdivisions()">应用</button>
+			</div>
+			
+			<div style="margin-top:10px;">
+				<h3>光源位置</h3>
+				<label>X: </label><input type="number" id="lightX" value="5.0" step="0.1">
+				<label>Y: </label><input type="number" id="lightY" value="5.0" step="0.1">
+				<label>Z: </label><input type="number" id="lightZ" value="5.0" step="0.1">
+				<label>W: </label><input type="number" id="lightW" value="0.0" step="0.1">
+				<button onclick="updateLightPosition()">更新光源</button>
+			</div>
+			
+			<div style="margin-top:10px;">
+				<h3>材质属性</h3>
+				<label>环境光(R,G,B): </label>
+				<input type="number" id="ambientR" value="1.0" step="0.1" min="0" max="1">
+				<input type="number" id="ambientG" value="0.0" step="0.1" min="0" max="1">
+				<input type="number" id="ambientB" value="1.0" step="0.1" min="0" max="1">
+				<br>
+				
+				<label>漫反射(R,G,B): </label>
+				<input type="number" id="diffuseR" value="1.0" step="0.1" min="0" max="1">
+				<input type="number" id="diffuseG" value="0.0" step="0.1" min="0" max="1">
+				<input type="number" id="diffuseB" value="0.0" step="0.1" min="0" max="1">
+				<br>
+				
+				<label>镜面反射(R,G,B): </label>
+				<input type="number" id="specularR" value="1.0" step="0.1" min="0" max="1">
+				<input type="number" id="specularG" value="1.0" step="0.1" min="0" max="1">
+				<input type="number" id="specularB" value="1.0" step="0.1" min="0" max="1">
+				<br>
+				
+				<label>光泽度: </label>
+				<input type="number" id="shininess" value="20.0" step="1.0" min="1" max="100">
+				<br>
+				
+				<button onclick="updateMaterial()">更新材质</button>
+			</div>
+			
+		</td>
+		</tr>
+	</table>
+
+</body>
+</html>

@@ -55,6 +55,9 @@ nav:
       - 任务 B: WEBGL/ch05/ch05html/Task_B.html
     - 实验六:
       - 任务 A: WEBGL/ch06/ch06html/ch06.html
+    - 实验七:
+      - 任务 A,B: WEBGL/ch07/ch07html/sphere-demo.html
+      - 任务 C: WEBGL/ch07/ch07html/lab6-7-webgl.html
     - 网课笔记:
       - Lecture 2: WEBGL/NOTE/Lecture02.md
       - Lecture 3and4: WEBGL/NOTE/Lecture03and04.md
